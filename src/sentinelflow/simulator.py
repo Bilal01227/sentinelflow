@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 
 
-def generate_flows(rows: int = 5000, *, seed: int = 42, attack_fraction: float = 0.08) -> pd.DataFrame:
+def generate_flows(
+    rows: int = 5000, *, seed: int = 42, attack_fraction: float = 0.08
+) -> pd.DataFrame:
     """Generate benign and labelled suspicious flow summaries (no real packets)."""
     if rows < 1:
         raise ValueError("rows must be positive")
