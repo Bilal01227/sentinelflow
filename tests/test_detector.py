@@ -43,7 +43,7 @@ def test_detector_rejects_empty_scoring_batch():
 
 
 def test_detector_requires_minimum_baseline():
-    data = generate_flows(19)
+    data = generate_flows(19, attack_fraction=0)
     with pytest.raises(ValueError, match="At least 20"):
         SentinelDetector().fit(data)
 
