@@ -15,10 +15,16 @@ def _number(value: Any, *, default: float = 0.0) -> float:
     if value is None or value == "-":
         return default
     try:
-        result = float(value)
+        return float(value)
     except (TypeError, ValueError):
-        return default
-    return result if result >= 0 and result < float("inf") else default
+        return float("nan")
+
+
+def _timestamp(value: Any) -> Any:
+    # Zeek JSON timestamps are Unix seconds; Suricata commonly emits ISO-8601.
+    if isinstance(value, (int, float)):
+        return pd.to_datetime(value, unit="s", utc=True)
+    return value
 
 
 def _protocol(value: Any) -> str:
@@ -36,12 +42,12 @@ def _row(*, timestamp: Any, src_ip: Any, dst_ip: Any, protocol: Any,
     packets = _number(src_packets) + _number(dst_packets)
     total_bytes = source_bytes + destination_bytes
     return {
-        "timestamp": timestamp, "src_ip": str(src_ip or ""),
+        "timestamp": _timestamp(timestamp), "src_ip": str(src_ip or ""),
         "dst_ip": str(dst_ip or ""), "protocol": _protocol(protocol),
         "duration": duration_value, "src_bytes": source_bytes,
         "dst_bytes": destination_bytes, "packets": packets,
         "failed_connections": int(failed), "unique_dst_ports": 1,
-        "mean_packet_size": total_bytes / packets if packets else 0.0,
+        "mean_packet_size": total_bytes / packets if packets > 0 else 0.0,
         "bytes_per_second": total_bytes / duration_value if duration_value > 0 else 0.0,
         "packets_per_second": packets / duration_value if duration_value > 0 else 0.0,
         "syn_ratio": float(syn_seen), "rst_ratio": float(rst_seen),
