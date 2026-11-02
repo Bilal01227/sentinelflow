@@ -8,19 +8,11 @@ import numpy as np
 import pandas as pd
 
 NUMERIC_FEATURES = (
-    "duration",
-    "src_bytes",
-    "dst_bytes",
-    "packets",
-    "failed_connections",
-    "unique_dst_ports",
-    "mean_packet_size",
-    "bytes_per_second",
-    "packets_per_second",
-    "syn_ratio",
-    "rst_ratio",
-    "same_dst_port_ratio",
+    "duration", "src_bytes", "dst_bytes", "packets", "failed_connections",
+    "unique_dst_ports", "mean_packet_size", "bytes_per_second",
+    "packets_per_second", "syn_ratio", "rst_ratio", "same_dst_port_ratio",
 )
+COUNT_FEATURES = ("packets", "failed_connections", "unique_dst_ports")
 REQUIRED_COLUMNS = ("timestamp", "src_ip", "dst_ip", "protocol", *NUMERIC_FEATURES)
 
 
@@ -64,6 +56,8 @@ def validate_flows(
     invalid |= ~data["protocol"].isin(["TCP", "UDP", "ICMP", "OTHER"])
     invalid |= ~data["src_ip"].map(_valid_ip)
     invalid |= ~data["dst_ip"].map(_valid_ip)
+    for column in COUNT_FEATURES:
+        invalid |= ~np.isclose(data[column] % 1, 0)
     for ratio_column in ("syn_ratio", "rst_ratio", "same_dst_port_ratio"):
         invalid |= ~data[ratio_column].between(0.0, 1.0, inclusive="both")
     dropped = int(invalid.sum())
