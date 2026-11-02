@@ -23,12 +23,12 @@ SEVERITY_SCORE = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 @dataclass
 class DetectionResult:
     events: pd.DataFrame
-    model: IsolationForest
+    model: object
     contamination: float
 
 
 class SentinelDetector:
-    """Fit on a representative baseline, then score flow summaries."""
+    """Fit on a representative benign baseline, then score flow summaries."""
 
     def __init__(self, *, contamination: float = 0.04, random_state: int = 42) -> None:
         if not 0.001 <= contamination <= 0.5:
@@ -37,14 +37,20 @@ class SentinelDetector:
         self.random_state = random_state
         self.model = make_pipeline(
             RobustScaler(),
-            IsolationForest(n_estimators=250, contamination=contamination,
-                            random_state=random_state, n_jobs=-1),
+            IsolationForest(
+                n_estimators=250,
+                contamination=contamination,
+                random_state=random_state,
+                n_jobs=-1,
+            ),
         )
         self._fitted = False
 
-    def fit(self, baseline: pd.DataFrame) -> "SentinelDetector":
+    def fit(self, baseline: pd.DataFrame) -> SentinelDetector:
         if len(baseline) < 20:
             raise ValueError("At least 20 baseline flows are required")
+        if baseline.empty:
+            raise ValueError("Baseline cannot be empty")
         self.model.fit(feature_matrix(baseline))
         self._fitted = True
         return self
@@ -52,6 +58,8 @@ class SentinelDetector:
     def predict(self, flows: pd.DataFrame) -> DetectionResult:
         if not self._fitted:
             raise RuntimeError("Call fit() before predict()")
+        if flows.empty:
+            raise ValueError("Cannot score an empty flow collection")
         x = feature_matrix(flows)
         raw = self.model.decision_function(x)
         anomaly = self.model.predict(x) == -1
@@ -69,11 +77,11 @@ class SentinelDetector:
         for idx in np.flatnonzero(anomaly):
             if not evidence[idx]:
                 evidence[idx].append("statistical_outlier_review")
-        rule_hit = np.array([bool(x) for x in evidence])
+        rule_hit = np.array([bool(item) for item in evidence])
         records["is_alert"] = rule_hit | anomaly
         records["severity"] = severity
         records.loc[anomaly & (records["severity"] == "low"), "severity"] = "medium"
-        records["evidence"] = [";".join(x) if x else "none" for x in evidence]
+        records["evidence"] = [";".join(item) if item else "none" for item in evidence]
         records["alert_reason"] = records["evidence"].map(
             lambda value: value.replace("_", " ").replace(";", ", ")
         )
