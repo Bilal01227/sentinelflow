@@ -24,7 +24,9 @@ def run_demo(args: argparse.Namespace) -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
     result.events.to_csv(output, index=False)
     metrics = evaluate(result.events, flows["label"])
-    severity_counts = (\n        result.events.loc[result.events["is_alert"], "severity"].value_counts().to_dict()\n    )
+    severity_counts = (
+        result.events.loc[result.events["is_alert"], "severity"].value_counts().to_dict()
+    )
     summary = {
         "rows": len(flows), "dropped_rows": report.dropped_rows,
         "alerts": int(result.events["is_alert"].sum()), "severity_counts": severity_counts,
@@ -101,7 +103,9 @@ def main() -> int:
     ingest.set_defaults(func=run_ingest)
     score = sub.add_parser("score", help="score a CSV against a separate benign baseline")
     score.add_argument("--input", required=True)
-    score.add_argument(\n        "--baseline", required=True, help="separate representative benign baseline CSV"\n    )
+    score.add_argument(
+        "--baseline", required=True, help="separate representative benign baseline CSV"
+    )
     score.add_argument("--output", default="artifacts/scored-events.csv")
     score.add_argument("--contamination", type=float, default=0.04)
     score.add_argument("--strict", action="store_true")
