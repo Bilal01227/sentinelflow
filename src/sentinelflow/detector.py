@@ -47,10 +47,14 @@ class SentinelDetector:
         self._fitted = False
 
     def fit(self, baseline: pd.DataFrame) -> SentinelDetector:
-        if len(baseline) < 20:
-            raise ValueError("At least 20 baseline flows are required")
         if baseline.empty:
             raise ValueError("Baseline cannot be empty")
+        if "label" in baseline.columns:
+            labels = baseline["label"].astype("string").str.lower()
+            if not labels.eq("benign").all():
+                raise ValueError("Training baseline must contain only benign-labelled flows")
+        if len(baseline) < 20:
+            raise ValueError("At least 20 baseline flows are required")
         self.model.fit(feature_matrix(baseline))
         self._fitted = True
         return self
