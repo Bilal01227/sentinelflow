@@ -33,3 +33,16 @@ def test_evaluation_metrics_are_bounded():
 def test_invalid_contamination_rejected():
     with pytest.raises(ValueError):
         SentinelDetector(contamination=0.8)
+
+
+def test_detector_rejects_empty_scoring_batch():
+    data = generate_flows(30)
+    detector = SentinelDetector().fit(data)
+    with pytest.raises(ValueError, match="empty flow"):
+        detector.predict(data.iloc[0:0])
+
+
+def test_detector_requires_minimum_baseline():
+    data = generate_flows(19)
+    with pytest.raises(ValueError, match="At least 20"):
+        SentinelDetector().fit(data)
