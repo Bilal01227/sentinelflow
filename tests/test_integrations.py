@@ -78,7 +78,7 @@ def test_malformed_sensor_counter_is_not_silently_accepted(tmp_path):
     }
     source.write_text(json.dumps(record) + "\n", encoding="utf-8")
     with pytest.raises(ValueError, match="No valid flow rows"):
-        validate_flows(load_sensor_jsonl(source, source="zeek"), strict=True)
+        validate_flows(load_sensor_jsonl(source, source="zeek"), strict=False)
 
 
 def test_non_object_json_and_no_supported_flow_fail(tmp_path):
