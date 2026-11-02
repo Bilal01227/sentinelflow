@@ -10,7 +10,7 @@ These values measure behaviour on the simulator's own generated patterns. They a
 
 1. Record dataset name, version, license, collection period, feature definitions, and preprocessing.
 2. Split chronologically or by host/site to prevent leakage between train and test.
-3. Fit scalers and anomaly models on training baseline only.
+3. Fit scalers and anomaly models on a designated benign training baseline only.
 4. Keep validation data separate for threshold selection.
 5. Report per-class precision/recall/F1, confusion matrix, false-positive rate, alert volume, and confidence intervals where possible.
 6. Compare rule-only, model-only, and hybrid variants.
@@ -23,3 +23,4 @@ These values measure behaviour on the simulator's own generated patterns. They a
 - A high anomaly score does not prove malicious intent.
 - The default thresholds are illustrative and require environment-specific calibration.
 - Synthetic patterns can be easier to separate than real attacker behaviour.
+- A production deployment must establish an acceptable false-positive budget with operators before enabling automated downstream action.
