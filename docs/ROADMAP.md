@@ -1,24 +1,27 @@
 # Roadmap
 
-## Implemented in 0.1.0
+## Implemented in 0.2.0
 
-- [x] Canonical flow-summary schema and validation
-- [x] Deterministic synthetic traffic-summary generator
-- [x] Robust-scaled Isolation Forest baseline model
-- [x] Transparent heuristic rules and evidence fields
-- [x] Offline CLI for demo and CSV scoring
-- [x] Label-aware metrics and automated tests
-- [x] CI, security policy, contribution guidance
+- [x] Canonical IPv4/IPv6 flow-summary schema and validation
+- [x] Finite numeric and ratio validation; duplicate-column rejection
+- [x] Deterministic synthetic flow generator
+- [x] Separate-baseline Isolation Forest scoring
+- [x] Transparent heuristic evidence and severity aggregation
+- [x] Offline CLI and label-aware synthetic evaluation
+- [x] Tests, CI, CodeQL, formatting, and dependency audit
 
-## Planned, not yet implemented
+## Required before production IDS deployment
 
 - [ ] Zeek JSON/TSV adapter with schema mapping tests
-- [ ] PCAP-to-flow adapter using a documented external parser
-- [ ] Streaming ingestion with bounded queues and backpressure
-- [ ] Persisted model artifact format and model-card metadata
-- [ ] Threshold calibration and drift monitoring
-- [ ] Rule-only / model-only / hybrid benchmark harness
-- [ ] Analyst dashboard and alert triage workflow
-- [ ] Signed releases and dependency/SBOM reporting
+- [ ] PCAP-to-flow adapter using a documented parser
+- [ ] Streaming ingestion with bounded queues, backpressure, and retry policy
+- [ ] Trusted model artifact format, signed provenance, and model registry
+- [ ] Threshold calibration on representative production traffic
+- [ ] Drift monitoring and retraining approval workflow
+- [ ] Rule-only / model-only / hybrid external benchmark
+- [ ] Alert deduplication, rate limiting, and analyst triage lifecycle
+- [ ] Authenticated API, authorization, audit logs, and retention controls
+- [ ] Container hardening, deployment manifests, health checks, and observability
+- [ ] Disaster recovery, performance/load tests, and security review
 
-Features remain unchecked until code, tests, and documentation are merged.
+Do not mark an item complete until implementation, tests, documentation, and operational evidence are merged.
