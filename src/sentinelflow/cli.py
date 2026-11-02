@@ -82,7 +82,9 @@ def main() -> int:
     demo.set_defaults(func=run_demo)
     score = sub.add_parser("score", help="score a CSV against a separate benign baseline")
     score.add_argument("--input", required=True)
-    score.add_argument("--baseline", required=True, help="separate representative benign baseline CSV")
+    score.add_argument(
+        "--baseline", required=True, help="separate representative benign baseline CSV"
+    )
     score.add_argument("--output", default="artifacts/scored-events.csv")
     score.add_argument("--contamination", type=float, default=0.04)
     score.add_argument("--strict", action="store_true")
