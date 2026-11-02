@@ -61,7 +61,7 @@ def test_zeek_epoch_and_missing_counters_are_normalized(tmp_path):
         "orig_bytes": "-", "resp_bytes": 10, "orig_pkts": 1,
         "resp_pkts": 1, "conn_state": "SF",
     }
-    source.write_text(json.dumps(record) + "\\n", encoding="utf-8")
+    source.write_text(json.dumps(record) + "\n", encoding="utf-8")
     clean, _ = validate_flows(load_sensor_jsonl(source, source="zeek"), strict=True)
     assert str(clean.loc[0, "timestamp"].year) == "2026"
     assert clean.loc[0, "protocol"] == "OTHER"
@@ -76,16 +76,16 @@ def test_malformed_sensor_counter_is_not_silently_accepted(tmp_path):
         "orig_bytes": "broken", "resp_bytes": 10, "orig_pkts": 1,
         "resp_pkts": 1, "conn_state": "SF",
     }
-    source.write_text(json.dumps(record) + "\\n", encoding="utf-8")
+    source.write_text(json.dumps(record) + "\n", encoding="utf-8")
     with pytest.raises(ValueError, match="No valid flow rows"):
         validate_flows(load_sensor_jsonl(source, source="zeek"), strict=True)
 
 
 def test_non_object_json_and_no_supported_flow_fail(tmp_path):
     source = tmp_path / "not-object.jsonl"
-    source.write_text("[]\\n", encoding="utf-8")
+    source.write_text("[]\n", encoding="utf-8")
     with pytest.raises(ValueError, match="JSON object"):
         load_sensor_jsonl(source, source="zeek")
-    source.write_text(json.dumps({"event_type": "alert"}) + "\\n", encoding="utf-8")
+    source.write_text(json.dumps({"event_type": "alert"}) + "\n", encoding="utf-8")
     with pytest.raises(ValueError, match="No supported"):
         load_sensor_jsonl(source, source="suricata")
