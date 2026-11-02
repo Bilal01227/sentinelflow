@@ -107,7 +107,7 @@ def load_sensor_jsonl(path: str | Path, *, source: str) -> pd.DataFrame:
         raise ValueError("source must be 'zeek' or 'suricata'")
     rows: list[dict[str, Any]] = []
     skipped = 0
-    for line_number, record in iter_jsonl(path):
+    for _line_number, record in iter_jsonl(path):
         mapped = _zeek(record) if source == "zeek" else _suricata(record)
         if mapped is None:
             skipped += 1
