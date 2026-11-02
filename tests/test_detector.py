@@ -37,7 +37,7 @@ def test_invalid_contamination_rejected():
 
 def test_detector_rejects_empty_scoring_batch():
     data = generate_flows(30)
-    detector = SentinelDetector().fit(data)
+    detector = SentinelDetector().fit(data[data.label == "benign"])
     with pytest.raises(ValueError, match="empty flow"):
         detector.predict(data.iloc[0:0])
 
@@ -45,4 +45,10 @@ def test_detector_rejects_empty_scoring_batch():
 def test_detector_requires_minimum_baseline():
     data = generate_flows(19)
     with pytest.raises(ValueError, match="At least 20"):
+        SentinelDetector().fit(data)
+
+
+def test_detector_rejects_contaminated_labelled_baseline():
+    data = generate_flows(100, attack_fraction=0.2)
+    with pytest.raises(ValueError, match="only benign-labelled"):
         SentinelDetector().fit(data)
