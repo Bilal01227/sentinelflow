@@ -59,3 +59,11 @@ def test_duplicate_columns_rejected():
     data.columns = [*data.columns[:-1], "label"]
     with pytest.raises(ValueError, match="Duplicate CSV"):
         validate_flows(data)
+
+
+def test_count_features_must_be_integers():
+    data = generate_flows(30)
+    data.loc[0, "packets"] = 1.5
+    clean, report = validate_flows(data)
+    assert len(clean) == 29
+    assert report.dropped_rows == 1
