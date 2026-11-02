@@ -44,7 +44,7 @@ def test_run_ingest_writes_normalized_csv(tmp_path):
         "orig_bytes": 100, "resp_bytes": 200, "orig_pkts": 2,
         "resp_pkts": 3, "conn_state": "SF",
     }
-    source.write_text(json.dumps(record) + "\\n", encoding="utf-8")
+    source.write_text(json.dumps(record) + "\n", encoding="utf-8")
     output = tmp_path / "nested" / "flows.csv"
     code = run_ingest(
         Namespace(source="zeek", input=str(source), output=str(output), strict=False)
