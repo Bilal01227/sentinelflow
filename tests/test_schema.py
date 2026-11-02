@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -35,3 +36,26 @@ def test_validation_rejects_ratio_outside_unit_interval():
     clean, report = validate_flows(data)
     assert len(clean) == 29
     assert report.dropped_rows == 1
+
+
+def test_validation_rejects_invalid_ip_and_infinite_features():
+    data = generate_flows(30)
+    data.loc[0, "src_ip"] = "not-an-ip"
+    data.loc[1, "bytes_per_second"] = np.inf
+    clean, report = validate_flows(data)
+    assert len(clean) == 28
+    assert report.dropped_rows == 2
+
+
+def test_validation_rejects_empty_result():
+    data = generate_flows(20)
+    data["src_ip"] = "invalid"
+    with pytest.raises(ValueError, match="No valid flow rows"):
+        validate_flows(data)
+
+
+def test_duplicate_columns_rejected():
+    data = generate_flows(20)
+    data.columns = [*data.columns[:-1], "label"]
+    with pytest.raises(ValueError, match="Duplicate CSV"):
+        validate_flows(data)
