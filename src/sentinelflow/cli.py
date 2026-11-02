@@ -15,7 +15,7 @@ from .simulator import generate_flows
 
 def run_demo(args: argparse.Namespace) -> int:
     raw = generate_flows(args.rows, seed=args.seed, attack_fraction=args.attack_fraction)
-    flows, report = validate_flows(raw)
+    flows, report = validate_flows(raw, strict=True)
     baseline = flows.loc[flows["label"] == "benign"]
     detector = SentinelDetector(contamination=args.contamination).fit(baseline)
     result = detector.predict(flows)
@@ -23,10 +23,14 @@ def run_demo(args: argparse.Namespace) -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
     result.events.to_csv(output, index=False)
     metrics = evaluate(result.events, flows["label"])
+    severity_counts = (
+        result.events.loc[result.events["is_alert"], "severity"].value_counts().to_dict()
+    )
     summary = {
-        "rows": len(flows), "dropped_rows": report.dropped_rows,
+        "rows": len(flows),
+        "dropped_rows": report.dropped_rows,
         "alerts": int(result.events["is_alert"].sum()),
-        "severity_counts": result.events.loc[result.events["is_alert"], "severity"].value_counts().to_dict(),
+        "severity_counts": severity_counts,
         "metrics": metrics,
         "caveat": "Synthetic demonstration only; not a validated production IDS benchmark.",
     }
@@ -38,15 +42,28 @@ def run_demo(args: argparse.Namespace) -> int:
 
 
 def run_csv(args: argparse.Namespace) -> int:
+    if args.baseline is None:
+        raise ValueError(
+            "A separate benign --baseline CSV is required for scoring. "
+            "Use 'sentinelflow demo' for a synthetic demonstration."
+        )
     raw = pd.read_csv(args.input)
+    baseline_raw = pd.read_csv(args.baseline)
     flows, report = validate_flows(raw, strict=args.strict)
-    baseline = flows if args.baseline is None else validate_flows(pd.read_csv(args.baseline))[0]
+    baseline, baseline_report = validate_flows(baseline_raw, strict=True)
+    if "label" in baseline.columns:
+        baseline = baseline.loc[baseline["label"].astype(str).str.lower() == "benign"]
     detector = SentinelDetector(contamination=args.contamination).fit(baseline)
     result = detector.predict(flows)
-    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-    result.events.to_csv(args.output, index=False)
-    print(f"Scored {len(flows)} flows; dropped {report.dropped_rows}; alerts {int(result.events.is_alert.sum())}")
-    for warning in report.warnings:
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    result.events.to_csv(output, index=False)
+    print(
+        f"Scored {len(flows)} flows; dropped {report.dropped_rows}; "
+        f"alerts {int(result.events['is_alert'].sum())}; "
+        f"baseline rows {len(baseline)}."
+    )
+    for warning in (*report.warnings, *baseline_report.warnings):
         print(f"WARNING: {warning}")
     return 0
 
@@ -63,9 +80,9 @@ def main() -> int:
     demo.add_argument("--contamination", type=float, default=0.04)
     demo.add_argument("--output", default="artifacts/demo-events.csv")
     demo.set_defaults(func=run_demo)
-    score = sub.add_parser("score", help="score a CSV of normalized flow records")
+    score = sub.add_parser("score", help="score a CSV against a separate benign baseline")
     score.add_argument("--input", required=True)
-    score.add_argument("--baseline", help="optional benign baseline CSV; defaults to input")
+    score.add_argument("--baseline", required=True, help="separate representative benign baseline CSV")
     score.add_argument("--output", default="artifacts/scored-events.csv")
     score.add_argument("--contamination", type=float, default=0.04)
     score.add_argument("--strict", action="store_true")
